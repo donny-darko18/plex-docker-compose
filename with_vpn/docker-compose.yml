@@ -1,0 +1,183 @@
+version: '3.9'
+
+services:
+
+  plex:
+    image: linuxserver/plex
+    container_name: plex
+    # environment:
+    #   - PUID=1000
+    #   - PGID=1000
+    #   - VERSION=docker
+    #   - HOSTNAME=”PlexServer”
+    volumes:
+      - /home/ubuntu/drivecloud:/media
+      - /dev/shm:/transcode
+      - /root/docker/plex:/config
+    network_mode: bridge
+    # ports: # when network: bridge
+    #   - "32400:32400/tcp"
+    #   - "8324:8324/tcp" # Required if network: bridge
+    #   - "32469:32469/tcp" # Required if network: bridge
+    #   - "1900:1900/udp" # Required if network: bridge
+    #   - "32410:32410/udp" # Required if network: bridge
+    #   - "32412:32412/udp" # Required if network: bridge
+    #   - "32413:32413/udp" # Required if network: bridge
+    #   - "32414:32414/udp" # Required if network: bridge
+    # privileged: true # libusb_init failed
+    restart: unless-stopped
+    ports:
+      - 32400:32400
+    # networks:
+    #   - media-network
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+    volumes:
+      - /home/ubuntu/drivecloud:/media
+      - /root/docker/radarr:/config
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+    volumes:
+      - /home/ubuntu/drivecloud:/media
+      - /root/docker/sonarr:/config
+    ports:
+      - "8989:8989"
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  lidarr:
+    image: linuxserver/lidarr
+    container_name: lidarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+    volumes:
+      - /root/docker/lidarr:/config
+      - /home/ubuntu/drivecloud:/media
+    ports:
+      - 8686:8686
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  prowlarr:
+    image: linuxserver/prowlarr
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+    volumes:
+      - /root/docker/prowlarr:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  bazarr:
+    image: linuxserver/bazarr
+    container_name: bazarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+    volumes:
+      - /root/docker//bazarr:/config
+      - /home/ubuntu/drivecloud:/media
+    ports:
+      - 6767:6767
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  qbittorrent:
+    image: dyonr/qbittorrentvpn
+    container_name: qbittorrent
+    environment:
+      - TZ=Australia/Sydney
+      - VPN_ENABLED=yes
+      - VPN_TYPE=openvpn
+      - LAN_NETWORK=192.168.0.0/24
+    volumes:
+      - /root/docker/qbittorrent:/config
+      - /root/docker/qbittorrent:/downloads
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  jackett:
+    image: linuxserver/jackett
+    container_name: jackett
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+    volumes:
+      - /root/docker/jackett:/downloads
+      - /root/docker/jackett:/config
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  ombi:
+    image: linuxserver/ombi
+    container_name: ombi
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+    volumes:
+      - /root/docker/ombi:/config
+    ports:
+      - 3579:3579
+    restart: unless-stopped
+    networks:
+      - media-network
+
+  heimdall:
+    image: linuxserver/heimdall
+    container_name: heimdall
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+    volumes:
+      - /root/docker/heimdall:/config
+    ports:
+      - 80:80
+      - 443:443
+      # - 8083:80
+    restart: unless-stopped
+    networks:
+      - media-network
+
+networks:
+  media-network:
+  
+volumes:
+  transcode:
+    external: true
