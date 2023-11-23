@@ -102,7 +102,7 @@ services:
       - PGID=1000
       - TZ=Australia/Sydney
     volumes:
-      - /root/docker//bazarr:/config
+      - /root/docker/bazarr:/config
       - /home/ubuntu/drivecloud:/media
     ports:
       - 6767:6767
@@ -110,22 +110,44 @@ services:
     networks:
       - media-network
 
-  qbittorrent:
-    image: dyonr/qbittorrentvpn
-    container_name: qbittorrent
-    environment:
-      - TZ=Australia/Sydney
-      - VPN_ENABLED=yes
-      - VPN_TYPE=openvpn
-      - LAN_NETWORK=192.168.0.0/24
+  transmission-openvpn:
+    image: haugene/transmission-openvpn
+    cap_add:
+        - NET_ADMIN
     volumes:
-      - /root/docker/qbittorrent:/config
-      - /root/docker/qbittorrent:/downloads
+        - /root/docker/transmission/data:/data
+        - /root/docker/transmission/config:/config
+    environment:
+        - OPENVPN_PROVIDER=PIA
+        - OPENVPN_CONFIG=australia
+        - OPENVPN_USERNAME=user
+        - OPENVPN_PASSWORD=pass
+        - LOCAL_NETWORK=192.168.0.0/16
+        - TZ=Australia/Sydney
+    logging:
+        driver: json-file
+        options:
+            max-size: 10m
     ports:
-      - 8080:8080
-    restart: unless-stopped
-    networks:
-      - media-network
+        - '9091:9091'
+    
+  # Doesn't support ARM64
+  # qbittorrent:
+  #   image: dyonr/qbittorrentvpn
+  #   container_name: qbittorrent
+  #   environment:
+  #     - TZ=Australia/Sydney
+  #     - VPN_ENABLED=yes
+  #     - VPN_TYPE=openvpn
+  #     - LAN_NETWORK=192.168.0.0/24
+  #   volumes:
+  #     - /root/docker/qbittorrent/config:/config
+  #     - /root/docker/qbittorrent/downloads:/downloads
+  #   ports:
+  #     - 8080:8080
+  #   restart: unless-stopped
+  #   networks:
+  #     - media-network
 
   jackett:
     image: linuxserver/jackett
@@ -177,7 +199,7 @@ services:
 
 networks:
   media-network:
-  
+
 volumes:
   transcode:
     external: true
