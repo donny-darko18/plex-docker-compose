@@ -1,0 +1,37 @@
+version: '3'
+services:
+  plex:
+    image: linuxserver/plex
+    volumes:
+      - /home/ubuntu/drivecloud:/media
+      - /dev/shm:/transcode
+      - /root/docker/plex:/config
+    network_mode: bridge
+  
+  radarr:
+    image: linuxserver/radarr
+    volumes:
+      - /home/ubuntu/drivecloud:/media
+      - /root/docker/radarr:/config
+  
+  sonarr:
+    image: linuxserver/sonarr
+    volumes:
+      - /home/ubuntu/drivecloud:/media
+      - /root/docker/sonarr:/config
+  
+  jackett:
+    image: linuxserver/jackett
+    volumes:
+      - /root/docker/jackett:/downloads
+      - /root/docker/jackett:/config
+  
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    volumes:
+      - /root/docker/qbittorrent:/config
+      - /root/docker/qbittorrent:/downloads
+
+volumes:
+  transcode:
+    external: true
