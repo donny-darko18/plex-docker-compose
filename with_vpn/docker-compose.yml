@@ -109,27 +109,65 @@ services:
     restart: unless-stopped
     networks:
       - media-network
-
-  transmission-openvpn:
-    image: haugene/transmission-openvpn
+  
+  pia:
+    container_name: GlueTun-pia
+    image: qmcgaw/gluetun
     cap_add:
-        - NET_ADMIN
-    volumes:
-        - /root/docker/transmission/data:/data
-        - /root/docker/transmission/config:/config
-    environment:
-        - OPENVPN_PROVIDER=PIA
-        - OPENVPN_CONFIG=australia
-        - OPENVPN_USERNAME=user
-        - OPENVPN_PASSWORD=pass
-        - LOCAL_NETWORK=192.168.0.0/16
-        - TZ=Australia/Sydney
-    logging:
-        driver: json-file
-        options:
-            max-size: 10m
+      - NET_ADMIN
     ports:
-        - '9091:9091'
+      - "8089:8089" # QbitTorrent UI
+      # - "9092:9091" # Transmission
+      # - "51413:51413" # Transmision
+      # - "51413:51413/udp" # Transmision
+      - "51420:51420" # QbitTorrent
+      - "51420:51420/udp" # QbitTorrent
+    environment:
+      - VPN_SERVICE_PROVIDER=private internet access
+      - OPENVPN_USER=''
+      - OPENVPN_PASSWORD=''
+      - SERVER_COUNTRIES=au_sydney
+      - VPN_TYPE=openvpn
+    restart: always
+  
+  qbittorrent:
+    image: linuxserver/qbittorrent:4.5.2
+    network_mode: "service:pia"
+    container_name: QbitTorrent-pia
+    depends_on:
+      - pia
+    environment:
+      - WEBUI_PORT=8089
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Sydney
+    volumes:
+      - /root/docker/qbittorrent/config:/config
+      - /root/docker/qbittorrent/downloads:/downloads
+    restart: always
+
+  # Doesn't support Categories
+  # transmission-openvpn:
+  #   image: haugene/transmission-openvpn
+  #   container_name: transmission
+  #   cap_add:
+  #       - NET_ADMIN
+  #   volumes:
+  #       - /root/docker/transmission/data:/data
+  #       - /root/docker/transmission/config:/config
+  #   environment:
+  #       - OPENVPN_PROVIDER=PIA
+  #       - OPENVPN_CONFIG=au_sydney
+  #       - OPENVPN_USERNAME=
+  #       - OPENVPN_PASSWORD=
+  #       - LOCAL_NETWORK=
+  #       - TZ=Australia/Sydney
+  #   logging:
+  #       driver: json-file
+  #       options:
+  #           max-size: 10m
+  #   ports:
+  #       - '9091:9091'
     
   # Doesn't support ARM64
   # qbittorrent:
